@@ -202,6 +202,7 @@ public class GameEngine {
      */
     private ArrayList<Point> getSpawns() {
         ArrayList<Point> spawns = new ArrayList<Point>();
+        spawns.removeAll(spawns);
         for (int i = 0; i < GRID_WIDTH; i++) {
             for (int j = 0; j < GRID_HEIGHT; j++) {
                 if (tiles[i][j] == SPACE) {
@@ -366,9 +367,13 @@ public class GameEngine {
             if (asteroids[k] != null) {
                 int x = asteroids[k].getX();
                 int y = asteroids[k].getY();
+
                 if (i == x & j == y) {
                     asteroids[k] = null;
-                    points = points++;
+                    points++;
+                    if (points == 5) {
+                        newLevel();
+                    }
                     return true;
                 }
             }
@@ -407,7 +412,7 @@ public class GameEngine {
                 if (asteroids[k].getMovementDirection() == RIGHT) {
                     y++;
                 }
-                if (x < 0 || y < 0 || x > GRID_WIDTH -1 || y > GRID_HEIGHT -1) {
+                if (x < 0 || y < 0 || x > GRID_WIDTH - 1 || y > GRID_HEIGHT - 1) {
                     Point s = spawns.get(t);
                     x = (int) s.getX();
                     y = (int) s.getY();
@@ -446,18 +451,28 @@ public class GameEngine {
     private void moveAlien(Alien a) {
         int x = a.getX();
         int y = a.getY();
-        int t = rng.nextInt(4);
-        if (t == 1 && x < GRID_WIDTH) {
-            a.setPosition(x + 1, y);
+        int t = rng.nextInt(3);
+        if (t == 0 && x < GRID_WIDTH-1) {
+            if (tiles[x + 1][y] == SPACE) {
+                a.setPosition(x + 1, y);
+            }
         }
-        if (t == 2 && x > 0) {
-            a.setPosition(x - 1, y);
+        if (t == 1 && x > 0) {
+            if (tiles[x - 1][y] == SPACE) {
+                a.setPosition(x - 1, y);
+            }
+
         }
-        if (t == 3 && y < GRID_HEIGHT) {
-            a.setPosition(x, y + 1);
+        if (t == 2 && y < GRID_HEIGHT -1) {
+            if (tiles[x][y + 1] == SPACE) {
+                a.setPosition(x, y + 1);
+            }
+
         }
-        if (t == 4 && y > 0) {
-            a.setPosition(x, y - 1);
+        if (t == 3 && y > 0) {
+            if (tiles[x][y - 1] == SPACE) {
+                a.setPosition(x, y - 1);
+            }
         }
     }
 
@@ -537,22 +552,22 @@ public class GameEngine {
         int b = 3;
         if (x < 0) {
             x++;
+            a--;
         }
         if (y < 0) {
             y++;
+            b--;
         }
-        if (x > GRID_WIDTH) {
-            x--;
+        if (x + 2 > GRID_WIDTH) {
             a--;
         }
-        if (y > GRID_HEIGHT) {
-            y--;
+        if (y + 2 > GRID_HEIGHT) {
             b--;
         }
         for (int s = x; s < x + a; s++) {
             for (int t = y; t < y + b; t++) {
                 if (tiles[s][t] == PULSAR_ACTIVE) {
-                    player.hullStrength = player.hullStrength - 2;
+                    player.hullStrength = player.hullStrength - 2 - cleared;
                 }
             }
 
@@ -570,7 +585,13 @@ public class GameEngine {
      * health to maximum.
      */
     private void newLevel() {
-
+        cleared++;
+        points = 0;
+        generateLevel();
+        getSpawns();
+        spawnAsteroids();
+        spawnAliens();
+        placePlayer();
     }
 
     /**
@@ -580,7 +601,11 @@ public class GameEngine {
      * x and y values of the Point taken from the spawns ArrayList.
      */
     private void placePlayer() {
-
+        int r = (int) (Math.random() * spawns.size() + 1);
+        Point t = spawns.get(r);
+        int a = (int) t.getX();
+        int b = (int) t.getY();
+        player.setPosition(a, b);
     }
 
     /**
